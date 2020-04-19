@@ -80,9 +80,9 @@ public class CompetitionFloydWarshall {
 					if(!nodes.containsKey(b)) {
 						nodes.put(b, new HashMap<Integer, Double>());
 					}
-					HashMap<Integer, Double> neighbours = nodes.get(b);
-					neighbours.put(a,c);
-					nodes.replace(b, neighbours);
+					HashMap<Integer, Double> neighbours = nodes.get(a);
+					neighbours.put(b,c);
+					nodes.replace(a, neighbours);
 					//redirects every path into the other direction for this implementation
 				}
 				if(from.size() != to.size()) errorFlag = 1;
@@ -112,10 +112,12 @@ public class CompetitionFloydWarshall {
     			distances[id1][id2] = neighbours.get(id2);
     		}
     	}
-    	for(int i = 0; i < nodeNum; i++) {
-    		for(int j = 0; j < nodeNum; j++) {
-    			for(int k = 0; k < nodeNum; k++) {
-    				if(distances[i][k] + distances[k][j]<distances[i][j])distances[i][j] = distances[i][k]+distances[k][j];
+
+    	for(int k =0; k<nodeNum; k++) {
+    		for(int i =0; i<nodeNum;i++) {
+    			for(int j =0;j<nodeNum;j++) {
+    				if(distances[i][k] + distances[k][j] < distances[i][j])
+    					distances[i][j] = distances[i][k] + distances[k][j];
     			}
     		}
     	}
@@ -127,18 +129,18 @@ public class CompetitionFloydWarshall {
      * @return int: minimum minutes that will pass before the three contestants can meet
      */
     public int timeRequiredforCompetition(){
-    	int timeRequired = Integer.MAX_VALUE;
+    	int timeRequired = 0;
     	FloydWarshall();
-		/*This implementation treats the point of convergence as the source
-			
-		*/
 		if(errorFlag == 0) {
 			
 			for(int source : nodes.keySet()) {
 				double[] temp = distances[source].clone();
+				for(int i =0; i<temp.length;i++) {
+					if(temp[i] ==Double.POSITIVE_INFINITY) temp[i] = 0;
+				}
 				Arrays.sort(temp);
-				int tempMin = Math.max(Math.max((int) Math.ceil(temp[0]*1000/slowest), (int) Math.ceil(temp[1]*1000/mid)),(int) Math.ceil(temp[2]*1000/fastest));
-				if(timeRequired > tempMin) timeRequired = tempMin;
+				int tempMax = (int) Math.ceil(temp[temp.length-1]*1000/slowest);
+				if(timeRequired < tempMax) timeRequired = tempMax;
 			}
 			
 			return timeRequired;

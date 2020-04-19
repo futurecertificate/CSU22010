@@ -23,6 +23,7 @@ import java.util.Scanner;
  * This class implements the competition using Dijkstra's algorithm
  * 
  * @author Vsevolod Syrtsov - 18323202
+ * @github https://github.com/futurecertificate/CSU22010/tree/master/DijkstraFloydWarshall
  *
  *
  */
@@ -64,13 +65,10 @@ public class CompetitionDijkstra {
 
 		}
 		
-		public int longestShortest() {
+		public int maxTime() {
 			ArrayList<Double> sortedCosts = cumCosts;
 			Collections.sort(sortedCosts);
-			int time1 = (int) Math.ceil(sortedCosts.get(0)*1000/slowest);
-			int time2 = (int) Math.ceil(sortedCosts.get(1)*1000/mid);
-			int time3 = (int) Math.ceil(sortedCosts.get(2)*1000/fastest);
-			return Math.max(Math.max(time1, time2),time3);
+			return (int) Math.ceil(sortedCosts.get(sortedCosts.size()-1)*1000/slowest);
 		}
 		
 		public int size() {
@@ -106,6 +104,13 @@ public class CompetitionDijkstra {
 		
 		public void remove(double[] node) {
 			nodeList.remove(node);
+		}
+		
+		public void removeById(int id) {
+			ArrayList<double[]> clone = (ArrayList<double[]> )nodeList.clone();
+			for(double[] e : clone) {
+				if((int)e[0] == id)this.remove(e);
+			}
 		}
 	}
 	
@@ -166,9 +171,9 @@ public class CompetitionDijkstra {
 					if(!nodes.containsKey(b)) {
 						nodes.put(b, new HashMap<Integer, Double>());
 					}
-					HashMap<Integer, Double> neighbours = nodes.get(b);
-					neighbours.put(a,c);
-					nodes.replace(b, neighbours);
+					HashMap<Integer, Double> neighbours = nodes.get(a);
+					neighbours.put(b,c);
+					nodes.replace(a, neighbours);
 					//redirects every path into the other direction for this implementation
 				}
 				if(from.size() != to.size()) {
@@ -191,17 +196,22 @@ public class CompetitionDijkstra {
 		RoutingTable permNodes = new RoutingTable();
 		TentativeNodesList bag = new TentativeNodesList();
 		permNodes.addNode(source, 0, -1);
-		
-		while(permNodes.size()<nodeNum) {
-			HashMap<Integer,Double> distances = nodes.get(permNodes.getNodeID(permNodes.size()-1));//get all associated nodes
+		for(int i=0; i<nodeNum; i++) {
+			HashMap<Integer,Double> distances = nodes.get(permNodes.getNodeID(permNodes.size()-1));//get all associated nodes of last entry
 			for(int id : distances.keySet()) {
-				if(!permNodes.contains(id)) {
+				if(!permNodes.contains(id)) {//if not already a permanent node
 					double[] nodeData = {id, permNodes.getCumCost(permNodes.size()-1) + distances.get(id), permNodes.getNodeID(permNodes.size()-1)};
 					bag.add(nodeData);
 				}
 			}
 			double[] newLPN = bag.getLowest();
+			if(newLPN.length == 0) {
+				break;
+			}
 			permNodes.addNode((int)newLPN[0], newLPN[1], (int)newLPN[2]);
+			bag.removeById((int)newLPN[0]);
+			//remove node with id newLPN[0] from bag
+			
 		}
 
 		return permNodes;
@@ -211,16 +221,13 @@ public class CompetitionDijkstra {
 	 * @return int: minimum minutes that will pass before the three contestants can meet
 	 */
 	public int timeRequiredforCompetition(){
-		int timeRequired = Integer.MAX_VALUE;
-		//int timeRequired = 0;
-		/*This implementation treats the point of convergence as the source
-			
-		*/
+		int timeRequired = 0;
+		
 		if(errorFlag == 0) {
 			
 			for(int source : nodes.keySet()) {
 				RoutingTable rt = Dijkstra(source);
-				if(timeRequired > rt.longestShortest()) timeRequired = rt.longestShortest();
+				if(timeRequired < rt.maxTime()) timeRequired = rt.maxTime();
 			}
 			
 			return timeRequired;

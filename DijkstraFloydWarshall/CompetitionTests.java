@@ -1,7 +1,7 @@
 import org.junit.Test;
 
 public class CompetitionTests {
-//
+
 	@Test
 	public void testDijkstraConstructor() {
 		CompetitionDijkstra cd = new CompetitionDijkstra("src/tinyEWD.txt", 50, 75, 100);
